@@ -1,0 +1,13 @@
+[1mdiff --git a/index.html b/index.html[m
+[1mindex 45554f0..1a93346 100644[m
+[1m--- a/index.html[m
+[1m+++ b/index.html[m
+[36m@@ -11,7 +11,7 @@[m
+   <main>[m
+     <img src="images/logo.svg" alt="Una ventana de navegador" width="160" height="100">[m
+     <h1>Mi primera web con Git</h1>[m
+[31m-    <p id="presentacion">Estoy aprendiendo a guardar versiones de mi web.</p>[m
+[32m+[m[32m    <p id="presentacion">Esta web es mi laboratorio de HTML, CSS, JavaScript y Git.</p>[m
+     <button id="saludo" type="button">Saludar</button>[m
+     <p id="mensaje" aria-live="polite"></p>[m
+   </main>[m

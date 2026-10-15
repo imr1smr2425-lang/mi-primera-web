@@ -1,0 +1,586 @@
+# Dos prácticas paso a paso: Git y GitHub
+
+**LMSGI · Nivel inicial · Trabajo individual**
+
+En la primera práctica crearás una web pequeña y publicarás cuatro versiones: una inicial y tres cambios posteriores. En la segunda adaptarás WebLab para crear un repositorio propio conservando el historial del proyecto original.
+
+## Antes de empezar
+
+- Instala Git y un editor, por ejemplo Visual Studio Code.
+- Crea una cuenta en [GitHub](https://github.com).
+- Usa **Git Bash** para todos los bloques de comandos de este documento, también en Windows. No los pegues en PowerShell. Abre Git Bash desde una carpeta de trabajo, por ejemplo Documentos.
+- Sustituye `TU-USUARIO`, nombre y correo por tus datos. No escribas los signos `<` y `>` alrededor de ellos.
+- Ejecuta los bloques en orden. Las indicaciones de edición se hacen en el editor y se guardan antes de continuar.
+
+Comprueba la instalación y configura la identidad de tus commits una sola vez:
+
+```bash
+git --version
+git config --global user.name "Tu nombre"
+git config --global user.email "tu-correo@example.com"
+```
+
+Puedes utilizar el correo privado de GitHub que aparece en **Settings → Emails**. La identidad del commit no inicia sesión en GitHub. Al hacer `push`, completa la autenticación que muestre el gestor de credenciales; por HTTPS no se utiliza la contraseña de la cuenta como contraseña de Git.
+
+### Qué guarda cada operación
+
+| Operación | Para qué sirve |
+| --- | --- |
+| `git status` | Ver archivos nuevos, modificados y preparados |
+| `git add` | Preparar contenido para el próximo commit |
+| `git diff` | Comparar cambios aún sin preparar |
+| `git diff --staged` | Revisar los cambios preparados |
+| `git commit` | Guardar una versión en el historial local |
+| `git push` | Enviar commits a GitHub |
+| `git pull --ff-only` | Traer e incorporar cambios si no hay divergencia |
+
+Guardar un archivo, preparar un cambio, crear un commit y subirlo son acciones diferentes. Git funciona en tu equipo; GitHub aloja los repositorios remotos.
+
+## Tutorial 1. Mi primera web, desde cero hasta GitHub Pages
+
+### 1. Crear las carpetas y los archivos
+
+Desde tu carpeta de trabajo, ejecuta:
+
+```bash
+mkdir mi-primera-web
+cd mi-primera-web
+mkdir images css js
+touch index.html css/estilos.css js/app.js images/logo.svg borrador.txt
+```
+
+Abre `mi-primera-web` en el editor. La estructura será:
+
+```text
+mi-primera-web/
+├── index.html
+├── borrador.txt
+├── images/
+│   └── logo.svg
+├── css/
+│   └── estilos.css
+└── js/
+    └── app.js
+```
+
+La carpeta `miniweb` entregada junto a este tutorial contiene los archivos iniciales completos para consultar o comparar. Para practicar la creación, escribe o copia el siguiente contenido en los archivos que acabas de crear. No copies una carpeta `.git` de otro proyecto.
+
+**`index.html`**: estructura, imagen, estilos y botón.
+
+```html
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mi primera web con Git</title>
+  <link rel="stylesheet" href="css/estilos.css">
+  <script src="js/app.js" defer></script>
+</head>
+<body>
+  <main>
+    <img src="images/logo.svg" alt="Una ventana de navegador" width="160" height="100">
+    <h1>Mi primera web con Git</h1>
+    <p id="presentacion">Estoy aprendiendo a guardar versiones de mi web.</p>
+    <button id="saludo" type="button">Saludar</button>
+    <p id="mensaje" aria-live="polite"></p>
+  </main>
+</body>
+</html>
+```
+
+**`css/estilos.css`**: presentación sencilla.
+
+```css
+body {
+  font-family: system-ui, sans-serif;
+  background: #eef4ff;
+  color: #172554;
+  margin: 0;
+  padding: 2rem;
+}
+main {
+  max-width: 42rem;
+  margin: auto;
+  padding: 2rem;
+  background: white;
+  border-radius: 1rem;
+}
+button {
+  padding: .7rem 1rem;
+  cursor: pointer;
+}
+```
+
+**`js/app.js`**: una interacción sin dependencias.
+
+```javascript
+const boton = document.querySelector('#saludo');
+const mensaje = document.querySelector('#mensaje');
+
+boton.addEventListener('click', () => {
+  mensaje.textContent = '¡Hola! Esta es mi primera versión.';
+});
+```
+
+**`images/logo.svg`**: una imagen vectorial local. SVG se puede escribir como texto y el navegador lo muestra como imagen.
+
+```svg
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 100">
+  <rect x="4" y="4" width="152" height="92" rx="12" fill="#2563eb"/>
+  <rect x="12" y="28" width="136" height="60" rx="4" fill="#eff6ff"/>
+  <circle cx="20" cy="16" r="4" fill="#fff"/>
+  <circle cx="34" cy="16" r="4" fill="#fff"/>
+  <path d="m62 44-16 14 16 14m36-28 16 14-16 14m-13-31-10 34" fill="none" stroke="#2563eb" stroke-width="5"/>
+</svg>
+```
+
+**`borrador.txt`**: un archivo provisional que eliminaremos más adelante.
+
+```text
+Idea provisional: practicar Git con una web pequeña.
+```
+
+Abre `index.html` en el navegador. Deben aparecer la imagen, una tarjeta blanca y el botón. Pulsa **Saludar** y comprueba el mensaje. Después de cada edición guarda y recarga la página.
+
+### 2. Iniciar Git y guardar la versión inicial (v1.0)
+
+Ejecuta dentro de `mi-primera-web`:
+
+```bash
+git init -b main
+git status
+git add index.html css/estilos.css js/app.js images/logo.svg borrador.txt
+git diff --staged
+git commit -m "Crea la miniweb inicial"
+git tag -a v1.0 -m "Miniweb inicial"
+git log --oneline
+```
+
+`git add` prepara los cinco archivos. El commit guarda una instantánea y el tag pone nombre a esa versión. La tecla `q` cierra el visor de `diff` o `log` si aparece.
+
+### 3. Crear un repositorio en tu cuenta y hacer la primera subida
+
+1. En GitHub, usa **New repository**.
+2. Nombre: `mi-primera-web`. Visibilidad: **Public**.
+3. Créalo vacío: sin README, licencia ni `.gitignore`, porque el proyecto ya existe en local.
+4. Copia su URL HTTPS y úsala en estos comandos, cambiando `TU-USUARIO`:
+
+```bash
+git remote add origin https://github.com/TU-USUARIO/mi-primera-web.git
+git remote -v
+git push -u origin main
+git push origin v1.0
+```
+
+`origin` es el nombre local del remoto. `-u` relaciona tu rama con `origin/main` para poder usar después `git push` sin más argumentos. Actualiza la página de GitHub: deben aparecer los cinco archivos y el primer commit.
+
+### 4. Primer cambio: modificar contenido y diseño (v1.1)
+
+En `index.html`, sustituye el párrafo con `id="presentacion"` por:
+
+```html
+<p id="presentacion">Esta web es mi laboratorio de HTML, CSS, JavaScript y Git.</p>
+```
+
+En `css/estilos.css`, cambia `background: #eef4ff;` por `background: #dcfce7;`. Guarda, recarga y revisa las diferencias antes de preparar:
+
+```bash
+git status
+git diff
+git add index.html css/estilos.css
+git diff --staged
+git commit -m "Personaliza la presentación y el fondo"
+git tag -a v1.1 -m "Presentación personalizada"
+git push
+git push origin v1.1
+```
+
+Resultado: segundo commit, fondo verde claro y nuevo texto tanto en local como en los archivos de GitHub. Todavía no hemos activado la web pública.
+
+### 5. Segundo cambio: añadir una página y enlazarla (v1.2)
+
+Crea el archivo:
+
+```bash
+touch sobre-mi.html
+```
+
+Escribe en él y cambia el nombre por el tuyo:
+
+```html
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sobre mí</title>
+  <link rel="stylesheet" href="css/estilos.css">
+</head>
+<body>
+  <main>
+    <h1>Sobre mí</h1>
+    <p>Soy Ana y estoy aprendiendo desarrollo web.</p>
+    <a href="index.html">Volver al inicio</a>
+  </main>
+</body>
+</html>
+```
+
+En `index.html`, justo antes de `</main>`, añade:
+
+```html
+<p><a href="sobre-mi.html">Sobre mí</a></p>
+```
+
+Comprueba la navegación de ida y vuelta y guarda la versión:
+
+```bash
+git status
+git diff
+git add sobre-mi.html index.html
+git diff --staged
+git commit -m "Añade la página Sobre mí y su enlace"
+git tag -a v1.2 -m "Web con dos páginas"
+git push
+git push origin v1.2
+```
+
+Un archivo nuevo sin seguimiento aparece en `status`, pero su contenido no aparece en `git diff` hasta prepararlo; entonces sí se ve en `git diff --staged`.
+
+### 6. Tercer cambio: borrar un archivo y mejorar el saludo (v1.3)
+
+El borrador ya no es necesario. Elimínalo con Git:
+
+```bash
+git rm borrador.txt
+```
+
+`git rm` borra el archivo del directorio de trabajo y prepara esa eliminación. El contenido seguirá disponible en los commits anteriores.
+
+En `js/app.js`, sustituye solo la asignación de `mensaje.textContent` por:
+
+```javascript
+mensaje.textContent = '¡Hola! Ya sé añadir, modificar y borrar archivos con Git.';
+```
+
+Prueba el botón y ejecuta:
+
+```bash
+git status
+git diff
+git diff --staged
+git add js/app.js
+git diff --staged
+git commit -m "Elimina el borrador y actualiza el saludo"
+git tag -a v1.3 -m "Limpieza y saludo final"
+git push
+git push origin v1.3
+```
+
+Antes de `git add`, el cambio de JavaScript está sin preparar y el borrado ya está preparado. Observa la diferencia entre los dos `diff`.
+
+### 7. Comparar versiones y comprobar el historial
+
+```bash
+git log --oneline --decorate
+git diff v1.0 v1.3 --stat
+git diff v1.0 v1.3 -- index.html
+git show v1.0:borrador.txt
+git status
+```
+
+Explica qué se añadió, qué se modificó y qué se borró. `git show` permite leer el borrador antiguo sin recuperarlo en la carpeta. Debes tener cuatro commits propios y los tags `v1.0`, `v1.1`, `v1.2`, `v1.3`. El estado final debe indicar que no hay cambios pendientes.
+
+### 8. Último paso: publicar la web con GitHub Pages
+
+1. En tu repositorio de GitHub, abre **Settings → Pages**.
+2. En **Build and deployment → Source**, selecciona **Deploy from a branch**.
+3. Selecciona **main** y la carpeta **/(root)**. Pulsa **Save**.
+4. Espera a que termine la publicación; consulta **Actions** si necesitas ver su estado.
+5. Abre la dirección que muestra Pages, normalmente `https://TU-USUARIO.github.io/mi-primera-web/`.
+6. Comprueba imagen, estilos, botón y enlace **Sobre mí** en la web publicada.
+
+Pages publicará el contenido de `main`. Los siguientes commits enviados a esa rama actualizarán la web sin reconfigurarlo. Si no ves un cambio inmediatamente, espera a que termine el despliegue y recarga. Las rutas del ejemplo son relativas y funcionan bajo el nombre del repositorio.
+
+**Entrega 1:** enlace al repositorio, enlace a Pages y una explicación breve de la comparación entre `v1.0` y `v1.3`.
+
+## Tutorial 2. De WebLab a un proyecto propio
+
+### 1. Clonar el proyecto de referencia
+
+Parte de [franmatias/weblab](https://github.com/franmatias/weblab). Este tutorial usa una copia con historial y un nuevo remoto propio: no hace falta crear un fork. El repositorio original seguirá disponible como `upstream` para consulta.
+
+Abre una terminal en tu carpeta de trabajo, **fuera de `mi-primera-web`**:
+
+```bash
+git clone https://github.com/franmatias/weblab.git mi-weblab
+cd mi-weblab
+git status
+git log -5 --oneline
+git remote -v
+```
+
+Clonar descarga los archivos y el historial y configura `origin`. Aquí no ejecutes `git init`.
+
+La referencia revisada tiene esta estructura:
+
+```text
+mi-weblab/
+├── index.html
+├── html.html
+├── css.html
+├── javascript.html
+├── git-github.html
+├── proyecto.html
+├── README.md
+├── LICENSE
+├── .gitignore
+├── css/estilos.css
+├── js/app.js
+└── img/
+    ├── favicon.svg
+    ├── web-stack.svg
+    └── box-model.svg
+```
+
+Abre `index.html` y recorre las seis páginas. El proyecto funciona sin instalar paquetes. Si la referencia evoluciona, comprueba primero sus nombres y rutas. El material se revisó sobre el commit `433b111ea02651facef85ed1e7b1c2d4652fd0ca`.
+
+### 2. Crear tu repositorio y conectar los remotos
+
+En **tu cuenta de GitHub**, crea un repositorio público y vacío llamado `mi-weblab`, sin archivos generados. Después:
+
+```bash
+git remote rename origin upstream
+git remote add origin https://github.com/TU-USUARIO/mi-weblab.git
+git remote -v
+git branch --show-current
+git push -u origin main
+```
+
+La rama de la referencia revisada es `main`. Compruébalo antes del push. `upstream` apunta al autor y `origin` a tu cuenta. Todas las subidas de esta práctica se hacen a `origin`. Ahora tienes un repositorio nuevo en tu cuenta que conserva los commits originales.
+
+### 3. Primera versión propia: definir el tema y documentar
+
+Transforma la copia en **mi laboratorio de desarrollo web**. En `index.html`, cambia el texto de `<title>` y del encabezado principal `<h1>` para incluir el nombre de tu laboratorio. No cambies sus etiquetas, clases ni identificadores. Añade antes de `</main>`:
+
+```html
+<section>
+  <h2>Mi laboratorio</h2>
+  <p>Este proyecto recoge mis prácticas de desarrollo web en LMSGI.</p>
+</section>
+```
+
+En el `README.md` de tu copia, añade al principio un título propio, tu objetivo y el enlace al repositorio original. Conserva los créditos y el archivo `LICENSE`: el proyecto se distribuye con licencia MIT.
+
+```bash
+git diff
+git add index.html README.md
+git diff --staged
+git commit -m "Personaliza WebLab como laboratorio propio"
+git tag -a alumno-v1 -m "Primera adaptación personal"
+git push origin main
+git push origin alumno-v1
+```
+
+Comprueba que los cambios aparecen en tu cuenta. Los commits originales se mantienen y tus commits nuevos se añaden después.
+
+### 4. Trabajar en una rama: añadir una página
+
+```bash
+git switch -c mejora/recursos
+touch recursos.html
+```
+
+Escribe en `recursos.html`:
+
+```html
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mis recursos web</title>
+  <link rel="stylesheet" href="css/estilos.css">
+</head>
+<body>
+  <main id="contenido">
+    <h1>Mis recursos web</h1>
+    <ul>
+      <li><a href="https://developer.mozilla.org/es/">MDN Web Docs</a></li>
+      <li><a href="https://git-scm.com/docs">Manual de Git</a></li>
+    </ul>
+    <p><a href="index.html">Volver al inicio</a></p>
+  </main>
+</body>
+</html>
+```
+
+En el menú principal de **cada una de las seis páginas originales**, añade un elemento siguiendo la estructura de los existentes:
+
+```html
+<li><a href="recursos.html">Recursos</a></li>
+```
+
+Prueba todos los menús y el regreso al inicio. Guarda y sube la rama:
+
+```bash
+git diff
+git add recursos.html index.html html.html css.html javascript.html git-github.html proyecto.html
+git diff --staged
+git commit -m "Añade recursos y enlaza la página desde el menú"
+git push -u origin mejora/recursos
+```
+
+### 5. Abrir un pull request e incorporar la mejora
+
+En **tu repositorio** de GitHub abre **Pull requests → New pull request**. Comprueba que la base es `main` y la rama comparada es `mejora/recursos`, ambas en tu cuenta.
+
+Título: `Añade una página de recursos`. En la descripción indica qué has añadido y cómo has probado los enlaces. Revisa **Files changed**, crea el pull request y usa **Merge pull request → Confirm merge** cuando esté disponible. Para esta práctica individual puedes revisarlo tú mismo.
+
+Actualiza tu copia local después de la fusión en GitHub:
+
+```bash
+git switch main
+git pull --ff-only origin main
+git log --oneline --graph --decorate -8
+git branch -d mejora/recursos
+```
+
+La rama local ya no hace falta porque su contenido está integrado. Si usaste una modalidad de fusión que impide borrarla con `-d`, consérvala y revisa el historial; no necesitas forzar su borrado para continuar.
+
+### 6. Renombrar, borrar y comparar
+
+Cambia el nombre de la página sin perder sus enlaces:
+
+```bash
+git mv recursos.html enlaces.html
+```
+
+En las seis páginas originales, sustituye únicamente `href="recursos.html"` por `href="enlaces.html"`. Crea un archivo temporal y guárdalo para poder practicar después un borrado versionado:
+
+```bash
+echo "Borrador de enlaces pendientes" > notas-temporales.txt
+git add index.html html.html css.html javascript.html git-github.html proyecto.html enlaces.html notas-temporales.txt
+git diff --staged
+git commit -m "Renombra recursos a enlaces y añade notas provisionales"
+git push origin main
+git rm notas-temporales.txt
+git diff --staged
+git commit -m "Elimina las notas provisionales"
+git push origin main
+git diff alumno-v1 HEAD --stat
+```
+
+La eliminación del nombre antiguo ya quedó preparada con `git mv`. Git puede mostrar el cambio como un renombrado si detecta suficiente similitud. Prueba los enlaces después de cambiar las rutas. No borres las imágenes originales: las páginas del curso las utilizan.
+
+### 7. Provocar y resolver un conflicto controlado
+
+Usaremos un archivo nuevo para que el ejercicio no dependa del HTML del autor. Parte de `main` y de un estado limpio:
+
+```bash
+git switch main
+git status
+echo "Tema: laboratorio web" > tema.txt
+git add tema.txt
+git commit -m "Define el tema inicial del laboratorio"
+git switch -c practica/tema
+echo "Tema: diseño de interfaces" > tema.txt
+git add tema.txt
+git commit -m "Propone un tema de interfaces"
+git switch main
+echo "Tema: desarrollo de aplicaciones" > tema.txt
+git add tema.txt
+git commit -m "Propone un tema de aplicaciones"
+git merge practica/tema
+```
+
+**Se espera un conflicto**: ambas ramas modificaron la misma línea desde un punto común. La fusión se detendrá. Ejecuta `git status` y abre `tema.txt`; verás marcas parecidas a estas:
+
+```text
+<<<<<<< HEAD
+Tema: desarrollo de aplicaciones
+=======
+Tema: diseño de interfaces
+>>>>>>> practica/tema
+```
+
+Sustituye **todo el contenido**, incluidas las marcas, por:
+
+```text
+Tema: desarrollo de aplicaciones con buenas interfaces
+```
+
+Guarda y termina la fusión:
+
+```bash
+git add tema.txt
+git diff --staged
+git commit -m "Integra ambos temas y resuelve el conflicto"
+git push origin main
+git branch -d practica/tema
+git log --oneline --graph --decorate -12
+```
+
+Explica por qué Git necesitó tu intervención. Si necesitas cancelar antes de resolver, `git merge --abort` vuelve al estado anterior al intento de fusión; después repite el merge para completar el ejercicio.
+
+### 8. Deshacer un cambio publicado con revert
+
+Haz una modificación deliberadamente provisional y publícala:
+
+```bash
+echo "Tema: pendiente de decidir" > tema.txt
+git add tema.txt
+git commit -m "Introduce un tema provisional"
+git push origin main
+git revert --no-edit HEAD
+git push origin main
+git show HEAD -- tema.txt
+```
+
+`revert` crea un nuevo commit que deshace el anterior: no elimina el historial publicado. Comprueba que `tema.txt` vuelve al tema combinado.
+
+### 9. Cerrar la práctica y publicar
+
+En tu `README.md`, añade una sección «Trabajo realizado» con las operaciones practicadas y el enlace a tu futuro Pages. Guarda una versión final:
+
+```bash
+git add README.md
+git commit -m "Documenta las operaciones realizadas"
+git tag -a alumno-v2 -m "Laboratorio terminado"
+git push origin main
+git push origin alumno-v2
+git diff alumno-v1 alumno-v2 --stat
+git status
+```
+
+Activa **Settings → Pages → Deploy from a branch → main → /(root) → Save** en `mi-weblab`. Abre la URL mostrada, normalmente `https://TU-USUARIO.github.io/mi-weblab/`, y verifica las seis páginas originales, la página de enlaces y las interacciones de CSS y JavaScript.
+
+**Entrega 2:** repositorio propio, Pages, enlace al pull request fusionado y una explicación del conflicto y del commit de reversión. Incluye una captura del historial o la salida de `git log --oneline --graph --decorate -15`.
+
+## Comprobación de las entregas
+
+| Evidencia | Tutorial 1 | Tutorial 2 |
+| --- | --- | --- |
+| Repositorio en la cuenta del alumno | `mi-primera-web` | `mi-weblab` con historial original |
+| Versiones | Inicial + 3 cambios subidos y 4 tags | `alumno-v1` y `alumno-v2` |
+| Operaciones | Añadir, modificar, borrar y comparar | Clonar, remotos, rama, PR, renombrar, borrar, merge, conflicto y revert |
+| Web publicada | Imagen, CSS, botón y segunda página | Personalización, menús y página de enlaces |
+| Estado local final | Sin cambios pendientes | Sin cambios pendientes |
+
+## Problemas frecuentes
+
+- **`not a git repository`:** comprueba tu carpeta con `pwd` y `ls -a`; entra en el proyecto correcto.
+- **`remote origin already exists`:** revisa `git remote -v`. En el segundo tutorial primero se renombra el remoto original a `upstream`.
+- **`nothing to commit`:** guarda los archivos en el editor y revisa `git status`; quizá ya confirmaste el cambio.
+- **El push se rechaza:** comprueba que el repositorio es tuyo y la URL correcta. Si hay commits remotos nuevos, ejecuta `git fetch origin` y revisa `git log --oneline --graph --all -12`. Si no tienes commits locales exclusivos, usa `git pull --ff-only origin main`. Si hay divergencia, pide revisión del historial al docente antes de integrar. No uses `push --force` para saltarte el problema.
+- **404 en Pages:** revisa la rama y carpeta de publicación, el archivo `index.html` en la raíz y el resultado de Actions. Usa la URL completa con el nombre del repositorio.
+- **Faltan estilos o imágenes:** comprueba rutas y mayúsculas; `images` en la primera práctica e `img` en WebLab son carpetas distintas.
+
+## Referencias
+
+- [Proyecto WebLab y su licencia](https://github.com/franmatias/weblab).
+- [Documentación de Git](https://git-scm.com/docs).
+- [Configurar una fuente de publicación para GitHub Pages](https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site).
+
+El material entregado contiene la miniweb en su estado inicial, sin repositorio Git ni historial simulado. Los commits, repositorios de GitHub y despliegues se crean al realizar las prácticas.
